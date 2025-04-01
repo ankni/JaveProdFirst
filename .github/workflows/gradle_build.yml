@@ -39,7 +39,8 @@ jobs:
     - name: Build and Push Docker Image
       uses: mr-smithers-excellent/docker-build-push@v4
       with:
-        image: egorravino/demo-image-java-app:v1
+        image: egorravino/demo-image-java-app
+        tags: v1-main-${{ github.sha }}
         registry: docker.io
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
