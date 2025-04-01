@@ -2,9 +2,9 @@ name: Java_CI_with_Gradle
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build_job:
@@ -23,14 +23,20 @@ jobs:
     - name: Grant execute permission to Gradle Wrapper
       run: chmod +x gradlew
 
-    - name: Build with Gradle
-      run: ./gradlew build
+    - name: Build with Gradle (debug mode)
+      run: ./gradlew build --warning-mode all
 
     - name: Debug Check build output
       run: ls -la build/libs/
 
-    - name: Rename JAR for Docker (если название отличается)
-      run: mv build/libs/*.jar build/libs/app.jar
+    - name: Rename JAR for Docker
+      run: |
+        ls -la build/libs/
+        JAR_FILE=$(ls build/libs/*.jar | head -n 1)
+        mv "$JAR_FILE" build/libs/app.jar
+
+    - name: Verify JAR before Docker
+      run: ls -la build/libs/app.jar
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
