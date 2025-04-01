@@ -11,8 +11,6 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
 
     steps:
     - name: Clone repo
