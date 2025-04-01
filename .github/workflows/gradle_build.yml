@@ -32,7 +32,7 @@ jobs:
     - name: Build with Gradle Wrapper
       run: ./gradlew build
 
-    - name: Debug: List build artifacts
+    - name: Debug List build artifacts
       run: ls -la build/libs/
 
     - name: Build and Push Docker Image
