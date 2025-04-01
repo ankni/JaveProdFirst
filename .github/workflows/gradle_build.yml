@@ -8,9 +8,7 @@ on:
 
 jobs:
   build_job:
-
     runs-on: ubuntu-latest
-    strategy:
 
     steps:
     - name: Clone repo
@@ -29,17 +27,19 @@ jobs:
       run: chmod +x gradlew
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
+      uses: gradle/actions/setup-gradle@v3
 
     - name: Build with Gradle Wrapper
       run: ./gradlew build
+
+    - name: Debug: List build artifacts
+      run: ls -la build/libs/
 
     - name: Build and Push Docker Image
       uses: mr-smithers-excellent/docker-build-push@v4
       with:
         image: egorravino/demo-image-java-app
-        tags: v1-main-${{ github.sha }}
+        tag: v1-main-${{ github.sha }}
         registry: docker.io
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-
