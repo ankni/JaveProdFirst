@@ -88,4 +88,4 @@ jobs:
         context: .
         file: Dockerfile
         push: true
-        tags: ${{ vars.REPO_NAME }}:V-${{ github.ref }}-${{ github.sha }}
+        tags: ${{ vars.REPO_NAME }}:V-${{ github.sha }}
