@@ -11,9 +11,22 @@ jobs:
   test_job:
     uses: ankni/JaveProdFirst/.github/workflows/test_template.yml@feature/add-upgrade
 
+  env_job:
+    runs-on: ubuntu-latest
+    outputs:
+      user_name: ${{ steps.set_user_name.outputs.user_name }}
+
+    steps:
+    - name: Get current user
+      id: set_user_name
+      run: |
+        USER_NAME=$(whoami)
+        echo "USER_NAME=$USER_NAME" >> $GITHUB_ENV
+        echo "::set-output name=user_name::$USER_NAME"
+      
   build_job:
     runs-on: ubuntu-latest
-    needs: test_job
+    needs: [test_job , env_job]
     
     steps:
     - name: Clone repository
@@ -61,7 +74,9 @@ jobs:
       run: |
         echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
         echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')" >> $GITHUB_ENV
-  
+        echo "USER_NAME=${{ needs.test_job.outputs.user_name }}" >> $GITHUB_ENV
+        echo "User Name is: ${{ needs.test_job.outputs.user_name }}"
+
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v5
       with:
