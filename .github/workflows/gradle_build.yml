@@ -85,4 +85,4 @@ jobs:
         context: .
         file: Dockerfile
         push: true
-        tags: egorravino/demo-image-java-app:v1-main-${{ github.sha }}
+        tags: ${{ vars.REPO_NAME }}:v1-main-${{ github.sha }}
