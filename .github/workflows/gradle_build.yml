@@ -56,8 +56,11 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build --warning-mode all
 
-    - name: Show variables 
-      run: echo "This is my variables ${{ REPO_NAME }} "
+    - name: Show variables
+      run: echo "This is my variable $REPO_NAME"
+      env:
+        REPO_NAME: ${{ vars.REPO_NAME }}
+    
 
     - name: Debug Check build output
       working-directory: build/libs
