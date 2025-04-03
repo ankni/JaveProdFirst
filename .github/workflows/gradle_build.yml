@@ -82,8 +82,10 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Get short SHA
-      run: echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
+    - name: Get env
+      run: |
+        echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
+        echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
   
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v5
@@ -91,5 +93,5 @@ jobs:
         context: .
         file: Dockerfile
         push: true
-        tags: ${{ vars.REPO_NAME }}:V-${{ env.SHORT_SHA }}
+        tags: ${{ vars.REPO_NAME }}:V-${{ env.BRANCH_NAME }}-${{ env.SHORT_SHA }}
   
