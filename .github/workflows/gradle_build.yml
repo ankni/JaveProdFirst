@@ -1,10 +1,5 @@
 name: Java_CI_with_Gradle
 
-env:
-BRANCH_NAME: ${{ github.ref #refs/heads/ }}  # Убираем refs/heads/
-TAG: ${{ github.sha.substring(0, 7) }}  # Короткий хеш коммита (например, первые 7 символов)
-
-
 on:
   push:
     branches: ["main" , "feature/add-upgrade"]
@@ -12,9 +7,12 @@ on:
     branches: ["main"]
 
 jobs:
-
+  
   test_job:
     runs-on: ubuntu-latest
+    env:
+      BRANCH_NAME: ${{ github.ref #refs/heads/ }}  # Убираем refs/heads/
+      TAG: ${{ github.sha.substring(0, 7) }}  # Короткий хеш коммита (например, первые 7 символов)
 
     steps:
     - name: Checkout repository
