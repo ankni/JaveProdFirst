@@ -9,7 +9,7 @@ on:
 jobs:
 
   test_job:
-    uses: ${{ vars.REPO_NAME }}/.github/workflows/test_template.yml@${{ vars.REPO_NAME }}
+    uses: ankni/JaveProdFirst/.github/workflows/test_template.yml@feature/add-upgrade
 
   build_job:
     runs-on: ubuntu-latest
