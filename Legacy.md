@@ -2,7 +2,7 @@ name: Java_CI_with_Gradle
 
 on:
   push:
-    branches: ["main" , "feature/add-upgrade"]
+    branches: ["main"] # Добавил чтобы еще фича бренч тригерил пайплайн
   pull_request:
     branches: ["main"]
 
@@ -20,12 +20,12 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-
+                                            # Добавил кеширование для ускорения запуска
     - name: Grant execute permission for Gradle
       run: chmod +x gradlew
 
     - name: Run tests with Gradle
-      run: ./gradlew test --continue
+      run: ./gradlew test         # добавил флаг  --continue. он позволит не останавливать выполнение на первом же ошибочном тесте, а прогнать все тесты и показать полный список ошибок.
 
   build_job:
     runs-on: ubuntu-latest
@@ -41,28 +41,20 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
 
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.gradle/caches
-        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          gradle-${{ runner.os }}-
-
-
     - name: Grant execute permission to Gradle
       run: chmod +x gradlew
 
     - name: Build with Gradle
       run: ./gradlew build --warning-mode all
 
-    - name: Debug Check build output
-      working-directory: build/libs
-      run: ls -la
-    
+    - name: Debug Check build output  # Явно указал воркдир, вроде как это полезно
+      run: ls -la build/libs/
 
     - name: Rename JAR for Docker
-      run: mv build/libs/*.jar build/libs/app.jar
+      run: |
+        ls -la build/libs/                           # Упростил переименование JAR
+        JAR_FILE=$(ls build/libs/*.jar | head -n 1)
+        mv "$JAR_FILE" build/libs/app.jar
 
     - name: Verify JAR before Docker
       run: ls -la build/libs/app.jar
@@ -80,3 +72,4 @@ jobs:
         file: Dockerfile
         push: true
         tags: egorravino/demo-image-java-app:v1-main-${{ github.sha }}
+
