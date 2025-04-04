@@ -32,6 +32,7 @@ jobs:
         echo "User Name is: $USER_NAME"
 
   build_job:
+    if: ${{ github.event.inputs.run_test_job == 'true' }}  # run_test_job: true
     runs-on: ubuntu-latest
     needs: [test_job, env_job]
     steps:
