@@ -2,35 +2,33 @@ name: Java_CI_with_Gradle
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "feature/add-upgrade"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
 
 jobs:
 
   test_job:
+    uses: ankni/JaveProdFirst/.github/workflows/test_template.yml@feature/add-upgrade
+
+  env_job:
     runs-on: ubuntu-latest
+    outputs:
+      user_name: ${{ steps.set_user_name.outputs.user_name }}
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-
-    - name: Grant execute permission for Gradle
-      run: chmod +x gradlew
-
-    - name: Run tests with Gradle
-      run: ./gradlew test
+    - name: Get current user
+      id: set_user_name
+      run: |
+        USER_NAME=$(whoami)
+        echo "USER_NAME=$USER_NAME" >> $GITHUB_ENV
+        echo "::set-output name=user_name::$USER_NAME"
+        echo "User Name is: $USER_NAME"  
 
   build_job:
     runs-on: ubuntu-latest
-    needs: test_job
-    
+    needs: [test_job, env_job]
     steps:
     - name: Clone repository
       uses: actions/checkout@v3
@@ -41,20 +39,26 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
 
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.gradle/caches
+        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          gradle-${{ runner.os }}-
+
     - name: Grant execute permission to Gradle
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew build --warning-mode all
+      run: ./gradlew build --warning-mode all   
 
     - name: Debug Check build output
-      run: ls -la build/libs/
-
+      working-directory: build/libs
+      run: ls -la
+    
     - name: Rename JAR for Docker
-      run: |
-        ls -la build/libs/
-        JAR_FILE=$(ls build/libs/*.jar | head -n 1)
-        mv "$JAR_FILE" build/libs/app.jar
+      run: mv build/libs/*.jar build/libs/app.jar
 
     - name: Verify JAR before Docker
       run: ls -la build/libs/app.jar
@@ -65,10 +69,17 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    - name: Get env
+      run: |
+        echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
+        echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')" >> $GITHUB_ENV
+        echo "USER_NAME=${{ needs.env_job.outputs.user_name }}" >> $GITHUB_ENV
+        echo "User Name is: ${{ needs.env_job.outputs.user_name }}" 
+
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v5
       with:
         context: .
         file: Dockerfile
         push: true
-        tags: egorravino/demo-image-java-app:v1-main-${{ github.sha }}
+        tags: ${{ vars.REPO_NAME }}:V-${{ env.BRANCH_NAME }}-${{ env.SHORT_SHA }}
