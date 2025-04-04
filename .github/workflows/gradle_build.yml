@@ -7,9 +7,6 @@ on:
     branches: ["main"]
   workflow_dispatch:
     inputs:
-      build_name:
-        description: 'Build name (or branch-shortSHA)'
-        required: false
       run_test_job:
         description: 'Run the test job?'
         required: false
