@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
+    inputs:
+      build_name:
+        description: 'Build name (or branch-shortSHA)'
+        required: false
 
 jobs:
 
@@ -23,8 +27,8 @@ jobs:
       run: |
         USER_NAME=$(whoami)
         echo "USER_NAME=$USER_NAME" >> $GITHUB_ENV
-        echo "::set-output name=user_name::$USER_NAME"
-        echo "User Name is: $USER_NAME"  
+        echo "user_name=$USER_NAME" >> $GITHUB_OUTPUT
+        echo "User Name is: $USER_NAME"
 
   build_job:
     runs-on: ubuntu-latest
@@ -71,10 +75,23 @@ jobs:
 
     - name: Get env
       run: |
-        echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
-        echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')" >> $GITHUB_ENV
-        echo "USER_NAME=${{ needs.env_job.outputs.user_name }}" >> $GITHUB_ENV
-        echo "User Name is: ${{ needs.env_job.outputs.user_name }}" 
+        SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)
+        BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
+        USER_NAME="${{ needs.env_job.outputs.user_name }}"
+
+        echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+        echo "USER_NAME=$USER_NAME" >> $GITHUB_ENV
+        echo "User Name is: $USER_NAME" 
+        
+        if [ -z "${{ github.event.inputs.build_name }}" ]; then
+          BUILD_NAME="${BRANCH_NAME}-${SHORT_SHA}"
+        else
+          BUILD_NAME="${{ github.event.inputs.build_name }}"
+        fi
+
+        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
+        echo "Build Name: $BUILD_NAME"
 
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v5
